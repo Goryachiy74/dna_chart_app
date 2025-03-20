@@ -43,22 +43,26 @@ dna_chart_app/ ├── src/ │ ├── chart_generator.py # Word frequency 
 Clone the project from GitHub:
 ```bash
 git clone https://github.com/your-username/dna_chart_app.git
-cd dna_chart_app
+cd dna_chart_app```
 
 2️⃣ Set Up Virtual Environment
 Create and activate a virtual environment:
-python -m venv venv
+```python -m venv venv```
+
 # Activate it:
 # Windows
-.\venv\Scripts\activate
+
+```.\venv\Scripts\activate```
+
 # MacOS / Linux
-source venv/bin/activate
+
+```source venv/bin/activate```
 
 3️⃣ Install Dependencies
 Install the required dependencies:
-pip install -r requirements.txt
+```pip install -r requirements.txt```
 
 4️⃣ Run the App
 To launch the GUI:
-python src/main.py
+```python src/main.py```
 
