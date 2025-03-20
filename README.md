@@ -33,3 +33,32 @@ Built with **Python** and a clean graphical user interface using **Tkinter**, th
 ---
 
 ## 🏗️ **Project Structure**
+dna_chart_app/ ├── src/ │ ├── chart_generator.py # Word frequency chart logic │ ├── isochore_plotter.py # GC content calculation and plotting │ ├── scatter_plotter.py # Scatter plot generation │ ├── gui.py # GUI interface with Tkinter │ ├── main.py # CLI and GUI entry point ├── icons/ # Application icons ├── dist/ # Generated executable ├── build/ # PyInstaller build files ├── .gitignore # Git ignore file ├── README.md # Project documentation └── requirements.txt # Dependencies
+
+
+---
+
+## 🖥️ **Installation**
+### 1️⃣ **Clone the Repository**
+Clone the project from GitHub:
+```bash
+git clone https://github.com/your-username/dna_chart_app.git
+cd dna_chart_app
+
+2️⃣ Set Up Virtual Environment
+Create and activate a virtual environment:
+python -m venv venv
+# Activate it:
+# Windows
+.\venv\Scripts\activate
+# MacOS / Linux
+source venv/bin/activate
+
+3️⃣ Install Dependencies
+Install the required dependencies:
+pip install -r requirements.txt
+
+4️⃣ Run the App
+To launch the GUI:
+python src/main.py
+
