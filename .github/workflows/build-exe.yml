@@ -3,7 +3,7 @@ name: Build EXE
 on:
   push:
     tags:
-      - 'master'
+      - 'v*'
   workflow_dispatch:
 
 jobs:
@@ -26,7 +26,7 @@ jobs:
           pip install pyinstaller
       
       - name: Debug file structure
-        run: dir /s
+        run: Get-ChildItem -Path . -Recurse
       
       - name: Build Executable
         working-directory: ./src
