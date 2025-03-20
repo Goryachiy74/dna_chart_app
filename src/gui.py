@@ -11,7 +11,7 @@ class DNAAnalyzerApp:
     def __init__(self, root):
         self.root = root
         self.root.title("DNA Segment Analyzer")
-        self.root.geometry("600x400")
+        self.root.geometry("600x1400")
         self.root.configure(bg="#F0F4F8")  # Soft background color
 
         # ==== Load Logo ====
