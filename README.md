@@ -45,6 +45,7 @@ dna_chart_app/
 ├── icons/                       # Application icons
 ├── dist/                        # Generated executable
 ├── build/                       # PyInstaller build files
+├── images/                      # Example charts
 ├── .gitignore                   # Git ignore file
 ├── README.md                    # Project documentation
 └── requirements.txt             # Dependencies
@@ -115,11 +116,17 @@ dist/main.exe
 - Select the input CSV file containing DNA segments.  
 - Set a threshold for word frequency.  
 - The app will display and save a bar chart.  
+![Example Chart](./images/merged_segments_output_3500_3_25000_threshold_20.png)
+
 
 ### ✅ 2. Isochore GC Content Chart
 - Load a CSV file with DNA segments and GC content.  
 - The app will display the GC content against genomic positions.  
-- Classification boundaries are marked automatically.  
+- Classification boundaries are marked automatically. 
+![Example Chart](./images/isochores_output_10000_10000_original.png)
+![Example Chart](./images/isochores_output_10000_10000_moving_average.png)
+![Example Chart](./images/isochores_output_10000_10000_simple_average.png)
+
 
 ### ✅ 3. Scatter Plot
 - Load a CSV file with segment start positions and lengths.  
