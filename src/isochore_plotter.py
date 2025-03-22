@@ -3,14 +3,31 @@ import glob
 import pandas as pd
 import matplotlib.pyplot as plt
 
+# Define isochore class boundaries and colors
 BOUNDARIES = [
-    (37, 'red', 'L1/L2 boundary'),
-    (42, 'green', 'H1/H2 boundary'),
-    (47, 'purple', 'H2/H3 boundary')
+    (37, 'blue', 'L1'),
+    (41, 'cyan', 'L2'),
+    (46, 'yellow', 'H1'),
+    (53, 'orange', 'H2'),
+    (100, 'red', 'H3')
 ]
 
 DEFAULT_AVG_POINTS = 100
 DEFAULT_MOVING_WINDOW = 50
+
+# Function to determine color based on isochore class
+def get_gc_class_color(gc_content):
+    if gc_content < 37:
+        return 'blue'
+    elif 37 <= gc_content < 41:
+        return 'cyan'
+    elif 41 <= gc_content < 46:
+        return 'yellow'
+    elif 46 <= gc_content < 53:
+        return 'orange'
+    elif gc_content >= 53:
+        return 'red'
+    return 'gray'
 
 class IsochorePlotter:
     def __init__(self, input_dir, output_dir, avg_points=DEFAULT_AVG_POINTS, moving_window=DEFAULT_MOVING_WINDOW):
@@ -27,123 +44,119 @@ class IsochorePlotter:
             print("⚠️ No files found in the input directory.")
         return files
 
-    def process_and_plot(self, file):
-        try:
-            df = pd.read_csv(file)
-            if df.empty:
-                print(f"⚠️ Skipping {file}: File is empty.")
-                return
+    def plot_original(self, df, file):
+        plt.figure(figsize=(16, 8))
 
-            df['Start (Mb)'] = df['Start'] / 1e6
+        colors = [get_gc_class_color(gc) for gc in df['GC_Content']]
+        if len(df) > 1:
+            bar_width = 0.9 * (df['Start (Mb)'].iloc[1] - df['Start (Mb)'].iloc[0])
+        else:
+            bar_width = 0.1
 
-            # === SIMPLE AVERAGE ===
-            avg_points = min(self.avg_points, len(df))
-            avg_gc_content = [
-                df['GC_Content'].iloc[i:i + avg_points].mean()
-                for i in range(0, len(df), avg_points)
-            ]
-            avg_start = [
-                df['Start'].iloc[i]
-                for i in range(0, len(df), avg_points)
-            ]
-            avg_end = [
-                df['Start'].iloc[min(i + avg_points - 1, len(df) - 1)]
-                for i in range(0, len(df), avg_points)
-            ]
-
-            # === SAVE SIMPLE AVERAGE AS CSV ===
-            output_csv = os.path.join(self.output_dir, f'{os.path.basename(file).replace(".csv", "_simple_average.csv")}')
-            simple_avg_df = pd.DataFrame({
-                'Start': avg_start,
-                'End': avg_end,
-                'GC_Content': avg_gc_content
-            })
-            simple_avg_df.to_csv(output_csv, sep='\t', index=False)  # Use tab separation
-            print(f"✅ Simple average data saved to {output_csv}")
-
-            # === ORIGINAL PLOT ===
-            plt.figure(figsize=(16, 8))
-            plt.plot(df['Start (Mb)'], df['GC_Content'], label='GC Content (Original)', color='blue', alpha=0.7)
-
-            for boundary, color, label in BOUNDARIES:
-                plt.axhline(boundary, color=color, linestyle='--', label=label)
-                plt.fill_between(df['Start (Mb)'], boundary, boundary + 5, color=color, alpha=0.1)
-
-            plt.title(f'GC Content - {os.path.basename(file)} (Original)')
-            plt.xlabel('Start (Mb)')
-            plt.ylabel('GC Content (%)')
-            plt.legend(loc='upper right')
-            plt.grid(True)
-
-            output_file_original = os.path.join(self.output_dir, f'{os.path.basename(file).replace(".csv", "_original.png")}')
-            plt.savefig(output_file_original, format='png', dpi=300)
-            plt.close()
-            print(f"✅ Original plot saved to {output_file_original}")
-
-            # === SIMPLE AVERAGE PLOT ===
-            plt.figure(figsize=(16, 8))
-            plt.plot(df['Start (Mb)'], df['GC_Content'], label='GC Content (Original)', color='blue', alpha=0.5)
-
-            plt.step(
-                [x / 1e6 for x in avg_start],  # Convert base pairs to Mb
-                avg_gc_content,
-                label=f'Simple Average ({avg_points} points)',
-                color='black',
-                where='mid',
-                linewidth=2
+        for i in range(len(df)):
+            plt.bar(
+                df['Start (Mb)'].iloc[i],
+                df['GC_Content'].iloc[i],
+                width=bar_width,
+                color=colors[i],
+                edgecolor=None,
+                zorder=3
             )
 
-            for boundary, color, label in BOUNDARIES:
-                plt.axhline(boundary, color=color, linestyle='--', label=label)
-                plt.fill_between(df['Start (Mb)'], boundary, boundary + 5, color=color, alpha=0.1)
+        for boundary, color, label in BOUNDARIES:
+            plt.axhline(boundary, color=color, linestyle='--', label=label, zorder=2)
+            plt.fill_between(df['Start (Mb)'], boundary, boundary + 5, color=color, alpha=0.1, zorder=1)
 
-            plt.title(f'GC Content - {os.path.basename(file)} (Simple Average)')
-            plt.xlabel('Start (Mb)')
-            plt.ylabel('GC Content (%)')
-            plt.legend(loc='upper right')
-            plt.grid(True)
+        plt.title(f'GC Content - {os.path.basename(file)} (Original)')
+        plt.xlabel('Start (Mb)')
+        plt.ylabel('GC Content (%)')
+        plt.legend(loc='upper right')
+        plt.grid(True, zorder=0)
 
-            output_file_simple_avg = os.path.join(self.output_dir, f'{os.path.basename(file).replace(".csv", "_simple_average.png")}')
-            plt.savefig(output_file_simple_avg, format='png', dpi=300)
-            plt.close()
-            print(f"✅ Simple average plot saved to {output_file_simple_avg}")
+        output_file = os.path.join(self.output_dir, f"{os.path.basename(file).replace('.csv', '_original.png')}")
+        plt.savefig(output_file, format='png', dpi=300)
+        plt.close()
+        print(f"✅ Original plot saved to {output_file}")
 
-            # === MOVING AVERAGE PLOT ===
-            df['Moving_Avg_GC_Content'] = df['GC_Content'].rolling(window=self.moving_window, min_periods=1).mean()
+    def plot_simple_average(self, df, file):
+        avg_points = min(self.avg_points, len(df))
+        avg_gc_content = [
+            df['GC_Content'].iloc[i:i + avg_points].mean()
+            for i in range(0, len(df), avg_points)
+        ]
+        avg_start = [
+            df['Start'].iloc[i]
+            for i in range(0, len(df), avg_points)
+        ]
+        avg_end = [
+            df['Start'].iloc[min(i + avg_points - 1, len(df) - 1)]
+            for i in range(0, len(df), avg_points)
+        ]
 
-            plt.figure(figsize=(16, 8))
-            plt.plot(df['Start (Mb)'], df['GC_Content'], label='GC Content (Original)', color='blue', alpha=0.5)
+        plt.figure(figsize=(16, 8))
+        plt.plot(df['Start (Mb)'], df['GC_Content'], label='GC Content (Original)', color='lightgray', alpha=0.5)
 
-            plt.plot(df['Start (Mb)'], df['Moving_Avg_GC_Content'],
-                     label=f'Moving Average (Window={self.moving_window})',
-                     color='orange', linewidth=2)
+        plt.step(
+            [x / 1e6 for x in avg_start],
+            avg_gc_content,
+            label=f'Simple Average ({avg_points} points)',
+            color='black',
+            linewidth=2,
+            where='mid'
+        )
 
-            for boundary, color, label in BOUNDARIES:
-                plt.axhline(boundary, color=color, linestyle='--', label=label)
-                plt.fill_between(df['Start (Mb)'], boundary, boundary + 5, color=color, alpha=0.1)
+        for boundary, color, label in BOUNDARIES:
+            plt.axhline(boundary, color=color, linestyle='--', label=label, zorder=2)
+            plt.fill_between(df['Start (Mb)'], boundary, boundary + 5, color=color, alpha=0.1, zorder=1)
 
-            plt.title(f'GC Content - {os.path.basename(file)} (Moving Average)')
-            plt.xlabel('Start (Mb)')
-            plt.ylabel('GC Content (%)')
-            plt.legend(loc='upper right')
-            plt.grid(True)
+        plt.title(f'GC Content - {os.path.basename(file)} (Simple Average)')
+        plt.xlabel('Start (Mb)')
+        plt.ylabel('GC Content (%)')
+        plt.legend(loc='upper right')
+        plt.grid(True, zorder=0)
 
-            output_file_moving_avg = os.path.join(self.output_dir, f'{os.path.basename(file).replace(".csv", "_moving_average.png")}')
-            plt.savefig(output_file_moving_avg, format='png', dpi=300)
-            plt.close()
-            print(f"✅ Moving average plot saved to {output_file_moving_avg}")
+        output_file = os.path.join(self.output_dir, f"{os.path.basename(file).replace('.csv', '_simple_average.png')}")
+        plt.savefig(output_file, format='png', dpi=300)
+        plt.close()
+        print(f"✅ Simple average plot saved to {output_file}")
 
-        except FileNotFoundError:
-            print(f"❌ File not found: {file}")
-        except pd.errors.EmptyDataError:
-            print(f"❌ File is empty: {file}")
-        except Exception as e:
-            print(f"❌ Error processing {file}: {e}")
+    def plot_histogram(self, df, file):
+        plt.figure(figsize=(16, 8))
+
+        # ✅ Histogram of GC Content distribution
+        plt.hist(
+            df['GC_Content'],
+            bins=50,
+            color='skyblue',
+            edgecolor='black'
+        )
+
+        for boundary, color, label in BOUNDARIES:
+            plt.axvline(boundary, color=color, linestyle='--', label=label)
+
+        plt.title(f'GC Content Distribution - {os.path.basename(file)}')
+        plt.xlabel('GC Content (%)')
+        plt.ylabel('Frequency')
+        plt.legend(loc='upper right')
+        plt.grid(True)
+
+        output_file = os.path.join(self.output_dir, f"{os.path.basename(file).replace('.csv', '_histogram.png')}")
+        plt.savefig(output_file, format='png', dpi=300)
+        plt.close()
+        print(f"✅ Histogram saved to {output_file}")
+
+    def process_and_plot(self, file):
+        df = pd.read_csv(file)
+        df['Start (Mb)'] = df['Start'] / 1e6
+
+        self.plot_original(df, file)
+        self.plot_simple_average(df, file)
+        self.plot_histogram(df, file)
 
     def process_all(self):
         files = self.get_files()
         if not files:
-            print("⚠️ No files matched the pattern. Please check the input directory and filename format.")
+            print("⚠️ No files matched the pattern.")
             return
         for file in files:
             self.process_and_plot(file)
